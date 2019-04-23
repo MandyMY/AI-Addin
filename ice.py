@@ -6,7 +6,7 @@ from matplotlib import colors, cm
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-
+import h2o
 
 def _get_grid_points(x, num_grid_points):
     if num_grid_points is None:
@@ -31,7 +31,7 @@ def _get_quantiles(x):
     return np.greater.outer(x, x).sum(axis=1) / x.size
 
 
-def ice(data, column, predict, num_grid_points=None):
+def ice(data, column, model, num_grid_points=None):
     """
     Generate individual conditional expectation (ICE) curves for a model.
 
@@ -59,9 +59,12 @@ def ice(data, column, predict, num_grid_points=None):
         corresponding to that ICE curve.
     :rtype: ``pandas`` ``DataFrame``
     """
+    data = data.as_data_frame()
     x_s = _get_grid_points(data[column], num_grid_points)
     ice_data, orig_column = _to_ice_data(data, column, x_s)
-    ice_data['ice_y'] = predict(ice_data.values)
+    hf = h2o.H2OFrame(ice_data)
+    hfd = model.predict(hf)
+    ice_data['ice_y'] = hfd.as_data_frame()['predict'].as_matrix()
     ice_data['data_{}'.format(column)] = orig_column
 
     other_columns = ['data_{}'.format(column)] + [col for col in data.columns if col != column]
