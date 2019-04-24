@@ -59,7 +59,7 @@ def ice(data, column, model, num_grid_points=None):
         corresponding to that ICE curve.
     :rtype: ``pandas`` ``DataFrame``
     """
-    # data = data.as_data_frame()
+    data = data.as_data_frame()
     x_s = _get_grid_points(data[column], num_grid_points)
     ice_data, orig_column = _to_ice_data(data, column, x_s)
     hf = h2o.H2OFrame(ice_data)
